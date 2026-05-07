@@ -26,3 +26,17 @@ export async function getArticle(slug: string): Promise<Article> {
   );
   return data.article;
 }
+
+export async function favoriteArticle(slug: string): Promise<Article> {
+  const { data } = await apiClient.post<SingleArticleResponse>(
+    `/articles/${slug}/favorite`
+  );
+  return data.article;
+}
+
+export async function unfavoriteArticle(slug: string): Promise<Article> {
+  const { data } = await apiClient.delete<SingleArticleResponse>(
+    `/articles/${slug}/favorite`
+  );
+  return data.article;
+}

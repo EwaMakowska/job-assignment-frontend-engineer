@@ -1,6 +1,9 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useHistory, useParams } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { useArticle } from "../hooks/useArticle";
+import { useFavorite } from "../hooks/useFavorite";
+import { useFollow } from "../hooks/useFollow";
+import { useAuthStore } from "../store/auth";
 import { AuthorAvatar } from "../components/AuthorAvatar";
 import type { Article as ArticleT } from "../types/api";
 
@@ -105,6 +108,11 @@ export default function Article(): JSX.Element {
 }
 
 function ArticleMeta({ article }: { article: ArticleT }): JSX.Element {
+  const history = useHistory();
+  const user = useAuthStore((s) => s.user);
+  const favoriteMutation = useFavorite();
+  const followMutation = useFollow();
+
   const date = format(parseISO(article.createdAt), "MMMM do, yyyy");
   const followClass = article.author.following
     ? "btn-secondary"
@@ -114,6 +122,22 @@ function ArticleMeta({ article }: { article: ArticleT }): JSX.Element {
     : "ion-plus-round";
   const followLabel = article.author.following ? "Unfollow" : "Follow";
   const favClass = article.favorited ? "btn-primary" : "btn-outline-primary";
+
+  const onFavorite = (): void => {
+    if (!user) {
+      history.push("/login");
+      return;
+    }
+    favoriteMutation.mutate(article);
+  };
+
+  const onFollow = (): void => {
+    if (!user) {
+      history.push("/login");
+      return;
+    }
+    followMutation.mutate(article.author);
+  };
 
   return (
     <div className="article-meta">
@@ -129,12 +153,20 @@ function ArticleMeta({ article }: { article: ArticleT }): JSX.Element {
         </Link>
         <span className="date">{date}</span>
       </div>
-      <button className={`btn btn-sm ${followClass}`}>
+      <button
+        type="button"
+        className={`btn btn-sm ${followClass}`}
+        onClick={onFollow}
+      >
         <i className={followIcon} />
         &nbsp; {followLabel} {article.author.username}
       </button>
       &nbsp;&nbsp;
-      <button className={`btn btn-sm ${favClass}`}>
+      <button
+        type="button"
+        className={`btn btn-sm ${favClass}`}
+        onClick={onFavorite}
+      >
         <i className="ion-heart" />
         &nbsp; Favorite Post{" "}
         <span className="counter">({article.favoritesCount})</span>
