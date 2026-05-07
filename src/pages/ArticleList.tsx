@@ -1,4 +1,9 @@
+import { useArticles } from "../hooks/useArticles";
+import { ArticlePreview } from "../components/ArticlePreview";
+
 export default function ArticleList(): JSX.Element {
+  const { data, isLoading, isError } = useArticles();
+
   return (
     <div className="home-page">
       <div className="banner">
@@ -26,49 +31,21 @@ export default function ArticleList(): JSX.Element {
               </ul>
             </div>
 
-            <div className="article-preview">
-              <div className="article-meta">
-                <a href="/#/profile/ericsimmons">
-                  <img src="http://i.imgur.com/Qr71crq.jpg" />
-                </a>
-                <div className="info">
-                  <a href="/#/profile/ericsimmons" className="author">
-                    Eric Simons
-                  </a>
-                  <span className="date">January 20th</span>
-                </div>
-                <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                  <i className="ion-heart" /> 29
-                </button>
+            {isLoading && (
+              <div className="article-preview">Loading articles...</div>
+            )}
+            {isError && (
+              <div className="article-preview">Could not load articles.</div>
+            )}
+            {data && data.articles.length === 0 && (
+              <div className="article-preview">
+                No articles are here... yet.
               </div>
-              <a href="/#/how-to-build-webapps-that-scale" className="preview-link">
-                <h1>How to build webapps that scale</h1>
-                <p>This is the description for the post.</p>
-                <span>Read more...</span>
-              </a>
-            </div>
-
-            <div className="article-preview">
-              <div className="article-meta">
-                <a href="/#/profile/albertpai">
-                  <img src="http://i.imgur.com/N4VcUeJ.jpg" />
-                </a>
-                <div className="info">
-                  <a href="/#/profile/albertpai" className="author">
-                    Albert Pai
-                  </a>
-                  <span className="date">January 20th</span>
-                </div>
-                <button className="btn btn-outline-primary btn-sm pull-xs-right">
-                  <i className="ion-heart" /> 32
-                </button>
-              </div>
-              <a href="/#/the-song-you-wont-ever-stop-singing" className="preview-link">
-                <h1>The song you won&lsquo;t ever stop singing. No matter how hard you try.</h1>
-                <p>This is the description for the post.</p>
-                <span>Read more...</span>
-              </a>
-            </div>
+            )}
+            {data &&
+              data.articles.map((article) => (
+                <ArticlePreview key={article.slug} article={article} />
+              ))}
           </div>
 
           <div className="col-md-3">
