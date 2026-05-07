@@ -1,67 +1,55 @@
+import { Link, useParams } from "react-router-dom";
+import { format, parseISO } from "date-fns";
+import { useArticle } from "../hooks/useArticle";
+import { AuthorAvatar } from "../components/AuthorAvatar";
+import type { Article as ArticleT } from "../types/api";
+
 export default function Article(): JSX.Element {
+  const { slug } = useParams<{ slug: string }>();
+  const { data: article, isLoading, isError } = useArticle(slug);
+
+  if (isLoading) {
+    return (
+      <div className="article-page">
+        <div className="container page">Loading article...</div>
+      </div>
+    );
+  }
+  if (isError || !article) {
+    return (
+      <div className="article-page">
+        <div className="container page">Could not load article.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="article-page">
       <div className="banner">
         <div className="container">
-          <h1>How to build webapps that scale</h1>
-
-          <div className="article-meta">
-            <a href="/#/profile/ericsimmons">
-              <img src="http://i.imgur.com/Qr71crq.jpg" />
-            </a>
-            <div className="info">
-              <a href="/#/profile/ericsimmons" className="author">
-                Eric Simons
-              </a>
-              <span className="date">January 20th</span>
-            </div>
-            <button className="btn btn-sm btn-outline-secondary">
-              <i className="ion-plus-round" />
-              &nbsp; Follow Eric Simons <span className="counter">(10)</span>
-            </button>
-            &nbsp;&nbsp;
-            <button className="btn btn-sm btn-outline-primary">
-              <i className="ion-heart" />
-              &nbsp; Favorite Post <span className="counter">(29)</span>
-            </button>
-          </div>
+          <h1>{article.title}</h1>
+          <ArticleMeta article={article} />
         </div>
       </div>
 
       <div className="container page">
         <div className="row article-content">
           <div className="col-md-12">
-            <p>Web development technologies have evolved at an incredible clip over the past few years.</p>
-            <h2 id="introducing-ionic">Introducing RealWorld.</h2>
-            <p>It&lsquo;s a great solution for learning how other frameworks work.</p>
+            {article.body
+              .split(/\n\n+/)
+              .map((paragraph, i) => (
+                <p key={i}>{paragraph}</p>
+              ))}
           </div>
         </div>
 
         <hr />
 
         <div className="article-actions">
-          <div className="article-meta">
-            <a href="/#/profile/ericsimmons">
-              <img src="http://i.imgur.com/Qr71crq.jpg" />
-            </a>
-            <div className="info">
-              <a href="/#/profile/ericsimmons" className="author">
-                Eric Simons
-              </a>
-              <span className="date">January 20th</span>
-            </div>
-            <button className="btn btn-sm btn-outline-secondary">
-              <i className="ion-plus-round" />
-              &nbsp; Follow Eric Simons
-            </button>
-            &nbsp;
-            <button className="btn btn-sm btn-outline-primary">
-              <i className="ion-heart" />
-              &nbsp; Favorite Post <span className="counter">(29)</span>
-            </button>
-          </div>
+          <ArticleMeta article={article} />
         </div>
 
+        {/* Comments are decorative scaffolding — README: "ignore implementation of comment section". */}
         <div className="row">
           <div className="col-xs-12 col-md-8 offset-md-2">
             <form className="card comment-form">
@@ -112,6 +100,45 @@ export default function Article(): JSX.Element {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ArticleMeta({ article }: { article: ArticleT }): JSX.Element {
+  const date = format(parseISO(article.createdAt), "MMMM do, yyyy");
+  const followClass = article.author.following
+    ? "btn-secondary"
+    : "btn-outline-secondary";
+  const followIcon = article.author.following
+    ? "ion-minus-round"
+    : "ion-plus-round";
+  const followLabel = article.author.following ? "Unfollow" : "Follow";
+  const favClass = article.favorited ? "btn-primary" : "btn-outline-primary";
+
+  return (
+    <div className="article-meta">
+      <Link to={`/profile/${article.author.username}`}>
+        <AuthorAvatar
+          src={article.author.image}
+          alt={article.author.username}
+        />
+      </Link>
+      <div className="info">
+        <Link to={`/profile/${article.author.username}`} className="author">
+          {article.author.username}
+        </Link>
+        <span className="date">{date}</span>
+      </div>
+      <button className={`btn btn-sm ${followClass}`}>
+        <i className={followIcon} />
+        &nbsp; {followLabel} {article.author.username}
+      </button>
+      &nbsp;&nbsp;
+      <button className={`btn btn-sm ${favClass}`}>
+        <i className="ion-heart" />
+        &nbsp; Favorite Post{" "}
+        <span className="counter">({article.favoritesCount})</span>
+      </button>
     </div>
   );
 }
