@@ -1,5 +1,9 @@
 import { apiClient } from "./client";
-import type { MultipleArticlesResponse } from "../types/api";
+import type {
+  Article,
+  MultipleArticlesResponse,
+  SingleArticleResponse,
+} from "../types/api";
 
 export interface ListArticlesParams {
   limit?: number;
@@ -14,4 +18,11 @@ export async function listArticles(
     params,
   });
   return data;
+}
+
+export async function getArticle(slug: string): Promise<Article> {
+  const { data } = await apiClient.get<SingleArticleResponse>(
+    `/articles/${slug}`
+  );
+  return data.article;
 }
